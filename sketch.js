@@ -8,12 +8,15 @@ father_chat = [], son_chat = [],
 //for delaying purposes 
 time = 0;
 var tester, yes_button, no_button, a, b;
+var database;
 function setup() {
   canvas = createCanvas(700, 600);
   //made the canvas store in a div so that I can arbitrarily use screen outside canvas 
   canvas.parent("ccd");
   bg = loadImage("bg.jpg");
   bg1 = loadImage("bg2.jpg");
+
+  database = firebase.database();
 
   for(var i = 0; i < 9; i++){
     father_chat[i] = loadImage((i+1)+"a.png");
@@ -83,12 +86,22 @@ function setup() {
   texc = createElement("h5");
   texc.html("CLICK ANYWHERE ON THE SCREEN TO CONTINUE");
   texc.position(20,620);
+
+  texd = createElement("h5");
+  texd.html("DO YOU AGREE WITH YOUR FATHER");
+  texd.position(200,660);
+
+  feedback = createInput("FEEDBACK");
+  feedback.position(370,400);
+
+  input = createInput("NAME");
+  input.position(370,200);
+
+  send_button = createButton("DONE");
+  send_button.position(370,440);
 }
 
 function draw(){
-
-  if(tester === "hospital"){
-  }
 
   background("white");
   
@@ -105,8 +118,12 @@ function draw(){
   texa.hide();
   texb.hide();
   texc.hide();
+  texd.hide();
   button1.hide();
   button.hide();
+  feedback.hide();
+  input.hide();
+  send_button.hide();
   if(playState !== 7){
   yes_button.hide();
   no_button.hide();
@@ -193,23 +210,33 @@ function draw(){
     }, 2000);
   }
   if(gameState === 3){
-    tiger1.visible = true;
 
-    child.visible = false;
-    father.visible = false;
-    sprie.visible = false;
-    hiders.visible = false;
-    tiger.visible = false;
-  
-    texa.hide();
-    texb.hide();
-    texc.hide();
-    button1.hide();
-    button.hide();
-    yes_button.hide();
-    no_button.hide();
+    feedback.show();
+    input.show();
+
+    tiger12.visible = true;
+
+    cars.visible = false;
+
+    image(father_chat[8],300,0);
+    send_button.show();
+    send_button.mousePressed(()=>{
+      if(feedback.value() !== undefined && input.value() !== undefined && feedback.value() !== null && input.value() !== null){
+        database.ref(input.value()).set({
+        info: feedback.value()
+      });
+    }
+    gameState ++;
+    });
   }
-
+if(gameState === 4){
+  textSize(40);
+  textFont("ALGERIAN");
+  push();
+  fill("green");
+  text("the game has ended",270,300);
+  pop();
+}
 
   if(tiger.x === NaN){
     tiger.y = 300;
@@ -248,7 +275,7 @@ function changeChats(){
   
   if(playState === 1){
 
-    image(father_chat[0],350,300);
+    image(father_chat[0],400,320);
 
     if(frameCount > time + 60){  
       texc.show()
@@ -287,7 +314,7 @@ function changeChats(){
   }
 
   if(playState === 4){
-    image(father_chat[1],350,300);
+    image(father_chat[1],330,280);
 
     if(frameCount > time + 60){  
       texc.show()
@@ -325,7 +352,7 @@ function changeChats(){
     
 
     if(playState === 7){
-
+      texd.show();
       yes_button.show();
       no_button.show();
 
@@ -344,14 +371,14 @@ function changeChats(){
 
     if(playState === 8){
       if(tester === "yes"){
-        image(son_chat[4],250,300);
+        image(son_chat[4],280,300);
       if(frameCount > time + 30){
         playState = "win-win"
         time = frameCount;
       }
       } else
       if(tester === "no"){
-        image(son_chat[3],250,300);
+        image(son_chat[3],250,315);
 
         if(frameCount > time + 60){  
           texc.show()
@@ -385,10 +412,9 @@ function changeChats(){
           }
         }
       }
-      console.log(tester)
       if(tester === "win"){
         tiger.x = -80;
-        image(son_chat[5],350,300);
+        image(son_chat[5],250,285);
         if(frameCount > time + 60){  
           texc.show()
           if(mouseIsPressed){
@@ -414,31 +440,59 @@ function changeChats(){
         
       
   if(playState === "it's still a win"){
+    background(bg1);
+    
+    image(drawing1,child.x,child.y,child.width,child.height);
+    image(drawing2,father.x,father.y,father.width,father.height);
 
     child.depth = 2;
     cars.depth = child.depth;
     child.depth = 1;
+    
+    cars.visible = false;
+    hiders.visible = false;
+    tiger.visible = false;
 
-    if(frameCount > time + 60){ 
-      texc.show()
-      if(mouseIsPressed){
-        time = frameCount; 
-        tester = "hospital";
-        hiders.visible = false;
-        tiger.visible = false;
-        cars.visible = false;
+    if(tester !== "hospital" && tester !== "win3" && tester !== "win4"){ 
+      time = frameCount; 
+      tester = "hospital";
+    }
+    
+  }
+  if(tester === "hospital"){
+        if(frameCount > time + 30){
+
+        image(son_chat[7],250,315);
       }
       
+        if(frameCount > time + 90){  
+          texc.show();
+          if(mouseIsPressed){
+            tester = "win3";
+            time = frameCount;
+          }
+        }
     }
-    if(tester === "hospital"){
-      background(bg1);
-      if(frameCount > time + 30){
-        image(drawing1,child.x,child.y,child.width,child.height);
-        image(drawing2,father.x,father.y,father.width,father.height);
-
-        image(son_chat[6],250,300);
-
+      if(tester === "win3"){
+        image(father_chat[7],350,300);
+        if(frameCount > time + 90){ 
+          texc.show();
+          if(mouseIsPressed){
+            time = frameCount;
+            tester = "win4";
+        }
       }
     }
-  }
-}
+        if(tester === "win4"){
+          image(son_chat[8],250,315);
+          if(frameCount > time + 30){
+            button1.show();
+              button1.mousePressed(()=>{
+                gameState++;
+              })
+        }
+        } 
+      
+    }
+  
+
